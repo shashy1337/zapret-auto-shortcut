@@ -44,7 +44,6 @@ public class VBSServiceImpl implements VBSService {
             }
         } catch (IOException e) {
             System.err.printf("[ERROR] VBS script could not be created or executed: %s%n", e.getMessage());
-            e.printStackTrace();
         } finally {
             if (vbsPath != null) {
                 try {
