@@ -17,7 +17,8 @@ import ru.shashy.service.ZipService;
         subcommands = {
                 ZapretAutoDownloadCommand.class,
                 ZapretAutoInstallCommand.class,
-                ZapretAutoCreateShortcut.class
+                ZapretAutoCreateShortcut.class,
+                ZapretAutoDeleteShortcut.class
         }
 )
 @Getter
