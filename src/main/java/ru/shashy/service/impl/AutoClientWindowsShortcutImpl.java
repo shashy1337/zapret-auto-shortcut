@@ -2,7 +2,7 @@ package ru.shashy.service.impl;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import ru.shashy.service.AutoCreateClientShortcut;
+import ru.shashy.service.AutoClientShortcut;
 import ru.shashy.service.VBSService;
 import ru.shashy.util.PathUtil;
 
@@ -14,21 +14,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RequiredArgsConstructor
-public class AutoCreateClientShortcutImpl implements AutoCreateClientShortcut {
+public class AutoClientWindowsShortcutImpl implements AutoClientShortcut {
 
     private static final String SHORTCUT_FILE_NAME = "Zapret.lnk";
 
     private final VBSService vbsService;
 
     @Override
-    public void createStartUpShortcut(@NonNull String sourceFilePath) {
-        createShortcut(sourceFilePath, PathUtil.getStartUpShortcutPathZapret());
+    public void create(@NonNull String sourceFilePath) {
+        createShortcut(sourceFilePath, PathUtil.getWindowsStartUpPath());
     }
 
     @Override
-    public void deleteShortcut() {
+    public void delete() {
         try {
-            Path shortcutDir = Paths.get(PathUtil.getStartUpShortcutPathZapret());
+            Path shortcutDir = Paths.get(PathUtil.getWindowsStartUpPath());
             Path shortcutPath = shortcutDir.resolve(SHORTCUT_FILE_NAME);
             if (Files.deleteIfExists(shortcutPath)) {
                 System.out.printf("[INFO] Successfully deleted shortcut: %s%n", shortcutPath);
@@ -37,7 +37,7 @@ public class AutoCreateClientShortcutImpl implements AutoCreateClientShortcut {
             }
         } catch (IOException e) {
             System.out.printf("[ERROR] Could not delete shortcut: %s (%s)%n",
-                    Paths.get(PathUtil.getStartUpShortcutPathZapret()).resolve(SHORTCUT_FILE_NAME),
+                    Paths.get(PathUtil.getWindowsStartUpPath()).resolve(SHORTCUT_FILE_NAME),
                     e.getMessage());
         }
     }
