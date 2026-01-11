@@ -2,7 +2,6 @@ package ru.shashy;
 
 import picocli.CommandLine;
 import ru.shashy.config.AppConfig;
-import ru.shashy.service.VBSService;
 import ru.shashy.service.impl.AutoClientWindowsShortcutImpl;
 import ru.shashy.service.impl.DownloadZapretServiceImpl;
 import ru.shashy.service.impl.VBSServiceImpl;

@@ -3,7 +3,10 @@ package ru.shashy.service.impl.commands;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
+import ru.shashy.enums.ZapretEnum;
+import ru.shashy.util.PathUtil;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 @Command(name = "download", description = "Download latest zapret release asset.")
@@ -17,7 +20,16 @@ public class ZapretAutoDownloadCommand implements Runnable {
 
     @Override
     public void run() {
-        Path path = cli.getDownloadZapretService().getLatest(targetDir);
-        System.out.println(path != null ? "[INFO] Download OK" : "[WARN] Download failed");
+        Path targetDirPath;
+        try {
+            targetDirPath = PathUtil.createAdditionalPathAndReturn(
+                    targetDir,
+                    ZapretEnum.ASSET_NAME.getName(),
+                    ZapretEnum.ZAPRET_AUTO_NAME.getName()
+            );
+            cli.getDownloadZapretService().getLatest(targetDirPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

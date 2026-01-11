@@ -3,11 +3,13 @@ package ru.shashy.service.impl.commands;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
+import ru.shashy.enums.ZapretEnum;
+import ru.shashy.util.EnvironmentUtil;
+import ru.shashy.util.PathUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 
 @Command(name = "install", description = "install latest zapret release asset.")
 public class ZapretAutoInstallCommand implements Runnable {
@@ -20,15 +22,19 @@ public class ZapretAutoInstallCommand implements Runnable {
 
     @Override
     public void run() {
-        Path targetPath = cli.getDownloadZapretService().getLatest(targetDir);
-        Optional.ofNullable(targetPath).ifPresentOrElse(p -> {
-                    cli.getZipService().unzip(p, p.getParent());
-                    try {
-                        Files.delete(p);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }, () -> System.out.println("[WARN] Installing error.")
-        );
+        Path targetDirPath;
+        try {
+            targetDirPath = PathUtil.createAdditionalPathAndReturn(
+                    targetDir,
+                    ZapretEnum.ASSET_NAME.getName(),
+                    ZapretEnum.ZAPRET_AUTO_NAME.getName()
+            );
+            Path parent = targetDirPath.getParent();
+            cli.getZipService().unzip(targetDirPath, parent);
+            Files.delete(targetDirPath);
+            EnvironmentUtil.createEnvironmentVariable(parent.getFileName().toString(), targetDirPath.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

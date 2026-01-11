@@ -12,9 +12,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,10 +26,6 @@ public class DownloadZapretServiceImpl implements DownloadZapretService {
             "User-Agent", "zapret-client-app"
     );
 
-    private static final String ASSET_NAME = "zapret_latest.zip";
-
-    private static final String ADDITIONAL_DIR_NAME = "ZapretAuto";
-
     @NonNull
     private final ObjectMapper objectMapper;
 
@@ -44,39 +38,29 @@ public class DownloadZapretServiceImpl implements DownloadZapretService {
     }
 
     @Override
-    public Path getLatest(String path) {
-        return Optional.ofNullable(getMetaReleaseInfo())
-                .map(browserDownloadUrl -> {
-                    try {
-                        Path baseDir = (path != null && !path.isBlank())
-                                ? Paths.get(path)
-                                : Paths.get(System.getProperty("user.dir"));
+    public Optional<Path> getLatest(Path targetPath) {
+        String url = getMetaReleaseInfo().orElseThrow(() -> new NotFoundException("Release is empty"));
+        HttpRequest rq = buildRequest(url).GET().build();
+        try {
+            HttpResponse<Path> rs = httpClient.send(rq, HttpResponse.BodyHandlers.ofFile(targetPath));
 
-                        Path targetPath = baseDir.resolve(ADDITIONAL_DIR_NAME).resolve(ASSET_NAME);
-                        Files.createDirectories(targetPath.getParent());
+            if (rs.statusCode() != 200) {
+                throw new IllegalStateException("Download failure: " + rs.statusCode());
+            }
 
-                        HttpRequest rq = buildRequest(browserDownloadUrl)
-                                .GET()
-                                .build();
+            System.out.printf("[INFO] Success download latest. Path: %s%n", targetPath);
+            return Optional.of(targetPath);
 
-                        HttpResponse<Path> rs = httpClient.send(rq, HttpResponse.BodyHandlers.ofFile(targetPath));
-                        if (rs.statusCode() != 200) {
-                            throw new RuntimeException("Download failure: %d".formatted(rs.statusCode()));
-                        }
-
-                        System.out.printf("[INFO] Success download latest zapret version. Path: %s%n", targetPath);
-                        return targetPath;
-                    } catch (IOException | InterruptedException e) {
-                        System.err.println(e.getMessage());
-                        return null;
-                    }
-                })
-                .orElse(null);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Download interrupted", e);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            return Optional.empty();
+        }
     }
 
-
-
-    private String getMetaReleaseInfo() {
+    private Optional<String> getMetaReleaseInfo() {
         try {
             HttpRequest rq = buildRequest(LATEST_RELEASE).GET().build();
             HttpResponse<String> rs = httpClient.send(rq, HttpResponse.BodyHandlers.ofString());
@@ -87,11 +71,14 @@ public class DownloadZapretServiceImpl implements DownloadZapretService {
                     .map(AssetRsDTO::browserDownloadUrl)
                     .filter(s -> s.endsWith(".zip"))
                     .peek(url -> System.out.printf("[INFO] Get latest release: %s%n", url))
-                    .findFirst()
-                    .orElseThrow(() -> new NotFoundException("No .zip asset found"));
-        } catch (IOException | InterruptedException e) {
+                    .findFirst();
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Meta request interrupted", e);
+        } catch (IOException e) {
             System.err.println(e.getMessage());
-            return null;
+            return Optional.empty();
         }
     }
 

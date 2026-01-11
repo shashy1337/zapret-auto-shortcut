@@ -13,12 +13,13 @@ import ru.shashy.service.ZipService;
         name = "zapret-auto",
         mixinStandardHelpOptions = true,
         description = "Zapret-auto CLI helper",
-        version = "1.0.0",
+        version = "1.1.0",
         subcommands = {
                 ZapretAutoDownloadCommand.class,
                 ZapretAutoInstallCommand.class,
                 ZapretAutoCreateShortcut.class,
-                ZapretAutoDeleteShortcut.class
+                ZapretAutoDeleteShortcut.class,
+                ZapretAutoUpdateCommand.class
         }
 )
 @Getter
